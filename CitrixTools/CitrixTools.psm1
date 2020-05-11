@@ -100,6 +100,23 @@ function Get-AppSession {
   }
 }
 
+function Get-AppSessionWithLoadIndex {
+  Add-PSSnapin *citrix*
+  $VDAServers = Get-BrokerMachine
+  $Sessions = Get-BrokerSession 
+  foreach ($Session in $Sessions) {
+    $VDAServer = $VDAServers | Where-Object {$_.HostedMachineName -eq $Session.HostedMachineName}
+    $hash = [ordered]@{
+      Client = $Session.ClientName  
+      Status = $Session.SessionState 
+      VDA = $Session.HostedMachineName
+      VDALoadIndex = $VDAServer.LoadIndex
+      User = $Session.UserName
+    }
+    New-Object -TypeName psobject -Property $hash  
+  }
+}
+
 Function Move-CitrixPolicy {
   <#
   .Synopsis
