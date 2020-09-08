@@ -27,6 +27,7 @@ th {
   text-align: left;
   background-color: #4CAF50;
   color: white;
+  text-transform: uppercase;
 }
 h3 {color: #4CAF50;}
 </style>
