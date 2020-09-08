@@ -63,6 +63,6 @@ foreach ($AdcElement in $AllAdcObjects) {
   $fragCount++
   Write-Progress -PercentComplete ($fragCount/$ObjectCount*100) -Status "Processing $AdcElement" -Activity "Getting the NetScaler Config"
   $AdcObjectdata = Get-ADCConfig -creds $ScriptCreds -NetScalerObject $AdcElement
-  if ($AdcObjectdata.Count -eq 0) { $Frag = $Frag + ($AdcObjectdata | ConvertTo-Html -Fragment -PreContent "<br><hr><h3> $AdcElement </h3>") }
+  if ($AdcObjectdata.Count -gt 0) { $Frag = $Frag + ($AdcObjectdata | ConvertTo-Html -Fragment -PreContent "<br><hr><h3> $AdcElement </h3>") }
 }
 ConvertTo-Html -PostContent $Frag -Head $Css | Out-File c:\report.html
