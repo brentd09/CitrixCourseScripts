@@ -6,9 +6,29 @@ Param (
 
 $Css = @'
 <style>
-  table {border:solid 1px black;border-collapse:collapse}
-  th {border:solid 1px black;border-collapse:collapse; background-color:Blue;color:white}
-  tr,td {border:solid 1px black;border-collapse:collapse}
+table {
+  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+tr:nth-child(even){background-color: #f2f2f2;}
+
+tr:hover {background-color: #ddd;}
+
+th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #4CAF50;
+  color: white;
+}
+h3 {color: #4CAF50;}
 </style>
 '@
 
@@ -34,12 +54,15 @@ function Get-ADCConfig {
   }
   catch{}
 }
+
+$frag = $null
 $fragCount = 0
 $AllAdcObjects = Get-ADCobjects -creds $ScriptCreds
 $ObjectCount = $AllAdcObjects.Count
 foreach ($AdcElement in $AllAdcObjects) {
   $fragCount++
-  Write-Progress -PercentComplete ($fragCount/$ObjectCount*100) -Status "Processing $AdcElement" -Activity "NetScaler Config"
-  $Frag = $Frag + (Get-ADCConfig -creds $ScriptCreds -NetScalerObject $AdcElement | ConvertTo-Html -Fragment -PreContent "<h1> $AdcElement </h1>")
+  Write-Progress -PercentComplete ($fragCount/$ObjectCount*100) -Status "Processing $AdcElement" -Activity "Getting the NetScaler Config"
+  $AdcObjectdata = Get-ADCConfig -creds $ScriptCreds -NetScalerObject $AdcElement
+  if ($AdcObjectdata.Count -eq 0) { $Frag = $Frag + ($AdcObjectdata | ConvertTo-Html -Fragment -PreContent "<br><hr><h3> $AdcElement </h3>") }
 }
 ConvertTo-Html -PostContent $Frag -Head $Css | Out-File c:\report.html
