@@ -3,7 +3,8 @@ Param (
   [Parameter(dontshow)]
   [PSCredential]$ScriptCreds =  (Get-Credential -Message 'ADC login credentials' -UserName nsroot),
   [string[]]$AdcObjectName = '',
-  [string]$ADCAddress = '192.168.10.101'
+  [string]$ADCAddress = '192.168.10.101',
+  [string]$HTMLOutputFile = 'c:\ADCConfig.html'
 )
 
 $Css = @'
@@ -78,4 +79,4 @@ foreach ($AdcElement in $AllAdcObjects) {
   $AdcObjectdata = Get-ADCConfig -creds $ScriptCreds -NetScalerObject $AdcElement -NSAddress $ADCAddress
   if ($AdcObjectdata.Count -gt 0) { $Frag = $Frag + ($AdcObjectdata | ConvertTo-Html -Fragment -PreContent "<br><hr><h3> $AdcElement </h3>") }
 }
-ConvertTo-Html -PostContent $Frag -Head $Css | Out-File c:\report.html
+ConvertTo-Html -PostContent $Frag -Head $Css | Out-File $HTMLOutputFile
