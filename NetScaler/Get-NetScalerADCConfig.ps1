@@ -12,11 +12,11 @@
    search for these specifically.
    The script will also prompt for Netscaler credentials.
 .EXAMPLE
-   Get-NetScalerADCConfig.ps1 -ADCAddress 192.168.10.101 -HTMLOutputFile c:\temp\ADCReport.html 
+   Get-ADCConfig.ps1 -ADCAddress 192.168.10.101 -HTMLOutputFile c:\temp\ADCReport.html 
    This will connect to a NetScaler on 192.168.10.101 and get all 
    of the configs and convert them into a HTML report named: ADCReport.html 
 .EXAMPLE
-   Get-NetScalerADCConfig.ps1 -ADCAddress 192.168.10.101 -HTMLOutputFile c:\temp\ADCReport.html -AdcObjectName Interface,arp 
+   Get-ADCConfig.ps1 -ADCAddress 192.168.10.101 -HTMLOutputFile c:\temp\ADCReport.html -AdcObjectName Interface,arp 
    This will connect to a NetScaler on 192.168.10.101 and get only 
    config info from Interface and arp and convert these into a HTML 
    report named: ADCReport.html 
@@ -107,9 +107,13 @@ Catch {
 }
 $frag = $null
 $fragCount = 0
-$AllAdcObjects = Get-ADCobjects -creds $ScriptCreds -NSAddress $ADCAddress
+if ($AdcObjectName -ne '') {
+  $AllAdcObjects = $AdcObjectName
+}
+else {
+  $AllAdcObjects = Get-ADCobjects -creds $ScriptCreds -NSAddress $ADCAddress
+}
 $ObjectCount = $AllAdcObjects.Count
-if ($AdcObjectName -ne '') {$AllAdcObjects = $AdcObjectName}
 foreach ($AdcElement in $AllAdcObjects) {
   $fragCount++
   Write-Progress -PercentComplete ($fragCount/$ObjectCount*100) -Status "Processing $AdcElement" -Activity "Getting the NetScaler Config"
