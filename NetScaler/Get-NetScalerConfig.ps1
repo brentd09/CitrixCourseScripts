@@ -1,9 +1,47 @@
+<#
+.Synopsis
+   This script queries a NetScaler ADC for its configuration
+.DESCRIPTION
+   Once the script has queried the NetScaler for its configuration
+   it converts the settings that are present into html fragments
+   which are combined with all of the other settings to produce a
+   HTML document.
+   If an ADCObjectName is not specified, this script searches for 
+   all configuration categories in the NS that have a current 
+   configruation, if an ADCObjectName/s are specified it will only 
+   search for these specifically.
+   The script will also prompt for Netscaler credentials.
+.EXAMPLE
+   Get-ADCConfig.ps1 -ADCAddress 192.168.10.101 -HTMLOutputFile c:\temp\ADCReport.html 
+   This will connect to a NetScaler on 192.168.10.101 and get all 
+   of the configs and convert them into a HTML report named: ADCReport.html 
+.EXAMPLE
+   Get-ADCConfig.ps1 -ADCAddress 192.168.10.101 -HTMLOutputFile c:\temp\ADCReport.html -AdcObjectName Interface,arp 
+   This will connect to a NetScaler on 192.168.10.101 and get only 
+   config info from Interface and arp and convert these into a HTML 
+   report named: ADCReport.html 
+.PARAMETER AdcObjectName
+   This parameter accepts names of configuration categories within the
+   NetScaler ADC and can accept one or more as an array
+.PARAMETER ADCAddress
+   This parameter accepts the address of the NetScaler ADC, this could
+   be either and IPAddress or a FQDN
+.PARAMETER HTMLOutputFile
+   This parameter accepts the file path of the html document that will
+   be produced by this script. Make sure the file ends with .html 
+   example c:\inetpub\wwwroot\ADCReport.html
+.NOTES
+   General notes
+     Created by: Brent Denny
+     Created on: 09 Sep 2020
+#>
 [CmdletBinding()]
 Param (
   [Parameter(dontshow)]
   [PSCredential]$ScriptCreds =  (Get-Credential -Message 'ADC login credentials' -UserName nsroot),
   [string[]]$AdcObjectName = '',
   [string]$ADCAddress = '192.168.10.101',
+  [ValidatePattern('.+\.html\s*$')]
   [string]$HTMLOutputFile = 'c:\ADCConfig.html'
 )
 
@@ -67,7 +105,6 @@ Catch {
   Write-Warning 'Please enter correct credentials for the ADC '
   break
 }
-
 $frag = $null
 $fragCount = 0
 $AllAdcObjects = Get-ADCobjects -creds $ScriptCreds -NSAddress $ADCAddress
