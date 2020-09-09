@@ -12,11 +12,11 @@
    search for these specifically.
    The script will also prompt for Netscaler credentials.
 .EXAMPLE
-   Get-ADCConfig.ps1 -ADCAddress 192.168.10.101 -HTMLOutputFile c:\temp\ADCReport.html 
+   Get-NetScalerADCConfig.ps1 -ADCAddress 192.168.10.101 -HTMLOutputFile c:\temp\ADCReport.html 
    This will connect to a NetScaler on 192.168.10.101 and get all 
    of the configs and convert them into a HTML report named: ADCReport.html 
 .EXAMPLE
-   Get-ADCConfig.ps1 -ADCAddress 192.168.10.101 -HTMLOutputFile c:\temp\ADCReport.html -AdcObjectName Interface,arp 
+   Get-NetScalerADCConfig.ps1 -ADCAddress 192.168.10.101 -HTMLOutputFile c:\temp\ADCReport.html -AdcObjectName Interface,arp 
    This will connect to a NetScaler on 192.168.10.101 and get only 
    config info from Interface and arp and convert these into a HTML 
    report named: ADCReport.html 
