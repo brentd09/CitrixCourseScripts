@@ -21,7 +21,6 @@ th {padding-top: 12px;padding-bottom: 12px;text-align: left;background-color: #0
 '@
   $CSSContent
 }
-
 function Get-CTXSite {
   Param ([string]$DDC)
   $CTXSite = Get-BrokerSite -AdminAddress $DDC
@@ -30,7 +29,6 @@ function Get-CTXSite {
     ConvertTo-Html -Fragment -PreContent '<h2>Virtual Apps and Desktop Site Information</h2>' -As List | Out-String
   $CTXSiteHTML -replace '<table>','<table Class=ListTable>' -replace '<tr><td>','<tr><th>' -replace '</td><td>','</th><td>'
 }
-
 function Get-CtxMachCat {
   Param ([string]$DDC)
   $CTXCat = Get-BrokerCatalog -AdminAddress $DDC
@@ -38,7 +36,6 @@ function Get-CtxMachCat {
     ConvertTo-Html -Fragment -PreContent '<br><br><h2>Machine Catalogs</h2>' | Out-String
   $CTXCatHtml
 }
-
 function Get-CtxDelGrp {
   Param ([string]$DDC)
   $CTXDelGrp = Get-BrokerDesktopGroup -AdminAddress $DDC
@@ -46,7 +43,6 @@ function Get-CtxDelGrp {
     ConvertTo-Html -Fragment -PreContent '<br><br><h2>Delivery Groups</h2>' | Out-String
   $CTXDelGrpHtml
 }
-
 function Get-CtxDDC {
   Param ([string]$DDC)
   $CTXDDC = Get-BrokerController -AdminAddress $DDC
@@ -75,7 +71,6 @@ function Get-CtxZone {
     ConvertTo-Html -Fragment -PreContent '<br><br><h2>Zones</h2>' | Out-String
   $CTXZoneHtml
 }
-
 function Get-CtxVDA {
   Param ([string]$DDC)
   $CTXVDA = Get-BrokerMachine -AdminAddress $DDC
@@ -83,7 +78,6 @@ function Get-CtxVDA {
     ConvertTo-Html -Fragment -PreContent '<br><br><h2>Virtual Delivery Agents</h2>' | Out-String
   $CTXVDAHtml
 }
-
 # ----------------Main Code ----------------
 try {
   if (-not (Test-Path -PathType Container -Path C:\inetpub\wwwroot\reports)) {
