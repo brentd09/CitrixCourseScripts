@@ -14,7 +14,7 @@
   General notes
     Created by : Brent Denny
     Created on : 18 Apr 2021
-    Modified on: 20 Apr 2021
+    Modified on: 21 Apr 2021
 #>
 [Cmdletbinding()]
 Param (
@@ -119,6 +119,16 @@ function Test-SvcReg {
     ConvertTo-Html -Fragment -PreContent '<br><br><h2 class=Test>Registered FMA Services</h2>' | Out-String
   $CTXSvcRegHtml -replace '<th>','<th Class=Test>'
 }
+
+function Test-SvcStatus {
+  Param ([string]$DDC)
+  $FMAServices = Get-Command *servicestatus  | Sort-Object -Property Source
+  $ServiceObject = foreach ($FMAService in $FMAServices) {
+    Invoke-Expression "$($FMAService.Name) -AdminAddress $DDC" | Select-Object -Property @{n='Service';e={$FMAService.Source}},@{n='Status';e={$_.ServiceStatus}}
+  }
+  $CTXSvcStatHTML = $ServiceObject | ConvertTo-Html -Fragment -PreContent '<h2 class=Test>FMA Service Status</h2>' | Out-String
+  $CTXSvcStatHTML -replace '<th>','<th Class=Test>'
+}
 # ----------------Main Code ----------------
 try {
   if (-not (Test-Path -PathType Container -Path C:\inetpub\wwwroot\reports)) {
@@ -137,7 +147,8 @@ $ZoneFrag = Get-CtxZone -DDC $DeliveryController
 $VDAFrag = Get-CtxVDA -DDC $DeliveryController
 $TestBkrDBFrag = Test-CtxBkrDB -DDC $DeliveryController
 $TestSvcRegFrag = Test-SvcReg -DDC $DeliveryController
+$TestSvcStatFrag = Test-SvcStatus -DDC $DeliveryController
 
 
-$WebPage = ConvertTo-Html -Head (Get-CSS) -Body $SiteFrag,$ZoneFrag,$DDCFrag,$MachCatFrag,$DelGrpFrag,$AppsFrag,$SessFrag,$VDAFrag,'<br><br><br><br><hr>',$TestBkrDBFrag,$TestSvcRegFrag
+$WebPage = ConvertTo-Html -Head (Get-CSS) -Body $SiteFrag,$ZoneFrag,$DDCFrag,$MachCatFrag,$DelGrpFrag,$AppsFrag,$SessFrag,$VDAFrag,'<br><br><br><br><hr>',$TestBkrDBFrag,$TestSvcStatFrag,$TestSvcRegFrag
 $WebPage | Out-File C:\inetpub\wwwroot\reports\index.html -Force 
