@@ -59,42 +59,48 @@ function Get-CtxMachCat {
 function Get-CtxDelGrp {
   Param ([string]$DDC)
   $CTXDelGrp = Get-BrokerDesktopGroup -AdminAddress $DDC
-  $CTXDelGrpHtml = $CTXDelGrp | Select-Object -Property Name,DeliveryType,DesktopKind,Enabled,InMaintenanceMode | 
+  $CTXDelGrpHtml = $CTXDelGrp | Select-Object -Property Name,DeliveryType,DesktopKind,Enabled,InMaintenanceMode | Sort-Object -Property Name |
     ConvertTo-Html -Fragment -PreContent '<br><br><h2>Delivery Groups</h2>' | Out-String
   $CTXDelGrpHtml
 }
 function Get-CtxDDC {
   Param ([string]$DDC)
   $CTXDDC = Get-BrokerController -AdminAddress $DDC
-  $CTXDDCHtml = $CTXDDC | Select-Object -Property DNSName,ControllerVersion,OSType,State,LastStartTime | 
+  $CTXDDCHtml = $CTXDDC | Select-Object -Property DNSName,ControllerVersion,OSType,State,LastStartTime,LastActivityTime | Sort-Object -Property DNSName |
     ConvertTo-Html -Fragment -PreContent '<br><br><h2>Delivery Controllers</h2>' | Out-String
   $CTXDDCHtml
 }
 function Get-CtxApp {
   Param ([string]$DDC)
   $CTXApp = Get-BrokerApplication -AdminAddress $DDC
-  $CTXAppHtml = $CTXApp | Select-Object -Property ApplicationName,Enabled,Visible,HomeZoneName | 
+  $CTXAppHtml = $CTXApp | Select-Object -Property ApplicationName,Enabled,Visible,HomeZoneName,HomeZoneOnly | Sort-Object -Property ApplicationName |
     ConvertTo-Html -Fragment -PreContent '<br><br><h2>Applications</h2>' | Out-String
   $CTXAppHtml  
 }
 function Get-CtxSession {
   Param ([string]$DDC)
   $CTXSession = Get-BrokerSession -AdminAddress $DDC
-  $CTXSessionHtml = $CTXSession | Select-Object -Property @{n='Applications';e={$_.ApplicationsInUse -join ';'}},ClientName,ClientAddress,ClientVersion,BrokeringTime,SessionType,SessionState,UserName,ZoneName  |
-    ConvertTo-Html -Fragment -PreContent '<br><br><h2>Sessions</h2>' | Out-String
-  $CTXSessionHtml  
+  if ($CTXSession) {
+    $CTXSessionHtml = $CTXSession | Select-Object -Property @{n='Applications';e={$_.ApplicationsInUse -join ';'}},AppState,ClientName,ClientAddress,ClientVersion,BrokeringTime,SessionType,SessionState,UserName,MachineName,ZoneName  |
+      ConvertTo-Html -Fragment -PreContent '<br><br><h2>Sessions</h2>' | Out-String
+ 
+  }
+  else {
+    $CTXSessionHtml = 'NO SESSIONS' | ConvertFrom-Csv -Header 'Sessions' |  ConvertTo-Html -Fragment -PreContent '<br><br><h2>Sessions</h2>' | Out-String
+  }
+  $CTXSessionHtml 
 }
 function Get-CtxZone {
   Param ([string]$DDC)
   $CTXZone = Get-ConfigZone -AdminAddress $DDC
-  $CTXZoneHtml = $CTXZone | Select-Object -Property Name,@{n='Controllers';e={$_.ControllerNames -join ';'}}  |
+  $CTXZoneHtml = $CTXZone | Select-Object -Property Name,@{n='Controllers';e={$_.ControllerNames -join ';'}},IsPrimary  | Sort-Object -Property Name |
     ConvertTo-Html -Fragment -PreContent '<br><br><h2>Zones</h2>' | Out-String
   $CTXZoneHtml
 }
 function Get-CtxVDA {
   Param ([string]$DDC)
   $CTXVDA = Get-BrokerMachine -AdminAddress $DDC
-  $CTXVDAHtml = $CTXVDA | Select-Object -Property MachineName,InMaintenanceMode,LoadIndex,RegistrationState,SummaryState,SessionSupport,LastConnectionUser,LastConnectionTime  |
+  $CTXVDAHtml = $CTXVDA | Select-Object -Property MachineName,InMaintenanceMode,LoadIndex,RegistrationState,SummaryState,SessionSupport,LastConnectionUser,LastConnectionTime  | Sort-Object -Property MachineName |
     ConvertTo-Html -Fragment -PreContent '<br><br><h2>Virtual Delivery Agents</h2>' | Out-String
   $CTXVDAHtml
 }
@@ -104,6 +110,14 @@ function Test-CtxBkrDB {
   $CTXBkrDB = New-Object -TypeName psobject -Property (Test-BrokerDBConnection -DBConnection (Get-BrokerDBConnection -AdminAddress $DDC)).ExtraInfo
   $CTXBkrDBHTML = $CTXBkrDB | ConvertTo-Html -Fragment -PreContent '<h2 class=Test>Broker DB Connections Test</h2>' -As List | Out-String
   $CTXBkrDBHTML -replace '<table>','<table Class=ListTable>' -replace '<tr><td>','<tr><th Class=Test>' -replace '</td><td>','</th><td>'
+}
+
+function Test-SvcReg {
+  Param ([string]$DDC)
+  $CTXSvcReg = Get-ConfigRegisteredServiceInstance -AdminAddress $DDC 
+  $CTXSvcRegHtml = $CTXSvcReg | Select-Object -Property Address,ServiceType,InterfaceType | Sort-Object -Property ServiceType,InterfaceType,Address  |
+    ConvertTo-Html -Fragment -PreContent '<br><br><h2 class=Test>Registered FMA Services</h2>' | Out-String
+  $CTXSvcRegHtml -replace '<th>','<th Class=Test>'
 }
 # ----------------Main Code ----------------
 try {
@@ -122,6 +136,8 @@ $SessFrag = Get-CtxSession -DDC $DeliveryController
 $ZoneFrag = Get-CtxZone -DDC $DeliveryController
 $VDAFrag = Get-CtxVDA -DDC $DeliveryController
 $TestBkrDBFrag = Test-CtxBkrDB -DDC $DeliveryController
+$TestSvcRegFrag = Test-SvcReg -DDC $DeliveryController
 
-$WebPage = ConvertTo-Html -Head (Get-CSS) -Body $SiteFrag,$ZoneFrag,$DDCFrag,$MachCatFrag,$DelGrpFrag,$AppsFrag,$SessFrag,$VDAFrag,'<br><br><br><br><hr>',$TestBkrDBFrag
+
+$WebPage = ConvertTo-Html -Head (Get-CSS) -Body $SiteFrag,$ZoneFrag,$DDCFrag,$MachCatFrag,$DelGrpFrag,$AppsFrag,$SessFrag,$VDAFrag,'<br><br><br><br><hr>',$TestBkrDBFrag,$TestSvcRegFrag
 $WebPage | Out-File C:\inetpub\wwwroot\reports\index.html -Force 
