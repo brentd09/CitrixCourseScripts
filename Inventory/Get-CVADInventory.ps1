@@ -1,3 +1,21 @@
+<#
+.SYNOPSIS
+  Creates a webpage showing the inventory of the CVAD site
+.DESCRIPTION
+  This will get varied bits of information regarding the CVAD site and creates an
+  index.html file in a reports virual directory of the DeliveryController
+.EXAMPLE
+  Get-CVADInventory -DeliveryController NYC-VDC-001.workspacelab.com
+  This communicates with the DDC listed on the commandline to extract the information
+  required for the inventory 
+.PARAMTER DeliveryController
+  This indicates which delivery controller to communicate with to get the site information
+.NOTES
+  General notes
+    Created by : Brent Denny
+    Created on : 18 Apr 2021
+    Modified on: 20 Apr 2021
+#>
 [Cmdletbinding()]
 Param (
   [string]$DeliveryController = 'localhost'
