@@ -10,8 +10,10 @@ function Get-CSS {
 <style>
 <style>
 body {font-family: Arial, Helvetica, sans-serif;}
-h2 {text-align: center;color:#001773;}
+h1,h2 {text-align: center;color:#001773;}
 table.ListTable {font-family: Arial, Helvetica, sans-serif;border-collapse: collapse;width: auto;}
+th.Test {background-color:green;}
+h2.Test {color:green}
 table {font-family: Arial, Helvetica, sans-serif;border-collapse: collapse;width: 100%;}
 td, th {border: 1px solid #ddd;padding: 8px;}
 tr:nth-child(even){background-color: #f2f2f2;}
@@ -26,7 +28,7 @@ function Get-CTXSite {
   $CTXSite = Get-BrokerSite -AdminAddress $DDC
   $CtxDBConn = Get-BrokerDBConnection -AdminAddress $DDC
   $CTXSiteHTML = $CTXSite | Select-Object -Property Name,LicenseServerName,LicensedSessionsActive,LicenseModel,@{n='DBConnection';e={$CtxDBConn}} | 
-    ConvertTo-Html -Fragment -PreContent '<h2>Virtual Apps and Desktop Site Information</h2>' -As List | Out-String
+    ConvertTo-Html -Fragment -PreContent '<h1>Virtual Apps and Desktop Site Information</h1>' -As List | Out-String
   $CTXSiteHTML -replace '<table>','<table Class=ListTable>' -replace '<tr><td>','<tr><th>' -replace '</td><td>','</th><td>'
 }
 function Get-CtxMachCat {
@@ -78,6 +80,13 @@ function Get-CtxVDA {
     ConvertTo-Html -Fragment -PreContent '<br><br><h2>Virtual Delivery Agents</h2>' | Out-String
   $CTXVDAHtml
 }
+
+function Test-CtxBkrDB {
+  Param ([string]$DDC)
+  $CTXBkrDB = New-Object -TypeName psobject -Property (Test-BrokerDBConnection -DBConnection (Get-BrokerDBConnection -AdminAddress $DDC)).ExtraInfo
+  $CTXBkrDBHTML = $CTXBkrDB | ConvertTo-Html -Fragment -PreContent '<h2 class=Test>Broker DB Connections Test</h2>' -As List | Out-String
+  $CTXBkrDBHTML -replace '<table>','<table Class=ListTable>' -replace '<tr><td>','<tr><th Class=Test>' -replace '</td><td>','</th><td>'
+}
 # ----------------Main Code ----------------
 try {
   if (-not (Test-Path -PathType Container -Path C:\inetpub\wwwroot\reports)) {
@@ -94,6 +103,7 @@ $AppsFrag = Get-CtxApp -DDC $DeliveryController
 $SessFrag = Get-CtxSession -DDC $DeliveryController
 $ZoneFrag = Get-CtxZone -DDC $DeliveryController
 $VDAFrag = Get-CtxVDA -DDC $DeliveryController
+$TestBkrDBFrag = Test-CtxBkrDB -DDC $DeliveryController
 
-$WebPage = ConvertTo-Html -Head (Get-CSS) -Body $SiteFrag,$ZoneFrag,$DDCFrag,$MachCatFrag,$DelGrpFrag,$AppsFrag,$SessFrag,$VDAFrag
+$WebPage = ConvertTo-Html -Head (Get-CSS) -Body $SiteFrag,$ZoneFrag,$DDCFrag,$MachCatFrag,$DelGrpFrag,$AppsFrag,$SessFrag,$VDAFrag,'<br><br><br><br><hr>',$TestBkrDBFrag
 $WebPage | Out-File C:\inetpub\wwwroot\reports\index.html -Force 
