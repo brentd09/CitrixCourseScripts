@@ -45,7 +45,7 @@ function Get-CTXSite {
   Param ([string]$DDC)
   $CTXSite = Get-BrokerSite -AdminAddress $DDC
   $CtxDBConn = Get-BrokerDBConnection -AdminAddress $DDC
-  $CTXSiteHTML = $CTXSite | Select-Object -Property Name,LicenseServerName,LicensedSessionsActive,LicenseModel,@{n='DBConnection';e={$CtxDBConn}} | 
+  $CTXSiteHTML = $CTXSite | Select-Object -Property Name,LicenseServerName,LicenseServerPort,LicensingGracePeriodActive,LicensedSessionsActive,LicenseModel,@{n='DBConnection';e={$CtxDBConn}} | 
     ConvertTo-Html -Fragment -PreContent '<h1>Virtual Apps and Desktop Site Information</h1>' -As List | Out-String
   $CTXSiteHTML -replace '<table>','<table Class=ListTable>' -replace '<tr><td>','<tr><th>' -replace '</td><td>','</th><td>'
 }
