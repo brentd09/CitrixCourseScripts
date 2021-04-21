@@ -105,6 +105,31 @@ function Get-CtxVDA {
   $CTXVDAHtml
 }
 
+function Get-CtxAdmin {
+  Param ([string]$DDC)
+  $CTXAdm = Get-AdminAdministrator -AdminAddress $DDC
+  $CTXAdmHtml = $CTXAdm | Select-Object -Property Name,Rights,Enabled  | Sort-Object -Property Name |
+    ConvertTo-Html -Fragment -PreContent '<br><br><h2>Administrators</h2>' | Out-String
+  $CTXAdmHtml
+}
+
+function Get-CtxRole {
+  Param ([string]$DDC)
+  $CTXRole = Get-AdminRole -AdminAddress $DDC
+  $CTXRoleHtml = $CTXRole | Select-Object -Property Name,Description,BuiltIn | Sort-Object -Property Name |
+    ConvertTo-Html -Fragment -PreContent '<br><br><h2>Roles</h2>' | Out-String
+  $CTXRoleHtml
+}
+
+
+function Get-CtxScope {
+  Param ([string]$DDC)
+  $CTXScope = Get-AdminScope -AdminAddress $DDC
+  $CTXScopeHtml = $CTXScope | Select-Object -Property Name,ReadOnly | Sort-Object -Property Name |
+    ConvertTo-Html -Fragment -PreContent '<br><br><h2>Scopes</h2>' | Out-String
+  $CTXScopeHtml
+}
+
 function Test-CtxBkrDB {
   Param ([string]$DDC)
   $CTXBkrDB = New-Object -TypeName psobject -Property (Test-BrokerDBConnection -DBConnection (Get-BrokerDBConnection -AdminAddress $DDC)).ExtraInfo
@@ -145,10 +170,14 @@ $AppsFrag = Get-CtxApp -DDC $DeliveryController
 $SessFrag = Get-CtxSession -DDC $DeliveryController
 $ZoneFrag = Get-CtxZone -DDC $DeliveryController
 $VDAFrag = Get-CtxVDA -DDC $DeliveryController
+$AdminFrag = Get-CtxAdmin -DDC $DeliveryController
+$RoleFrag = Get-CtxRole -DDC $DeliveryController
+$ScopeFrag = Get-CtxScope -DDC $DeliveryController
+
 $TestBkrDBFrag = Test-CtxBkrDB -DDC $DeliveryController
 $TestSvcRegFrag = Test-SvcReg -DDC $DeliveryController
 $TestSvcStatFrag = Test-SvcStatus -DDC $DeliveryController
 
 
-$WebPage = ConvertTo-Html -Head (Get-CSS) -Body $SiteFrag,$ZoneFrag,$DDCFrag,$MachCatFrag,$DelGrpFrag,$AppsFrag,$SessFrag,$VDAFrag,'<br><br><br><br><hr>',$TestBkrDBFrag,$TestSvcStatFrag,$TestSvcRegFrag
+$WebPage = ConvertTo-Html -Head (Get-CSS) -Body $SiteFrag,$ZoneFrag,$DDCFrag,$MachCatFrag,$DelGrpFrag,$AppsFrag,$SessFrag,$VDAFrag,$AdminFrag,$RoleFrag,$ScopeFrag,'<br><br><br><br><hr>',$TestBkrDBFrag,$TestSvcStatFrag,$TestSvcRegFrag
 $WebPage | Out-File C:\inetpub\wwwroot\reports\index.html -Force 
