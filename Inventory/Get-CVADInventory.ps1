@@ -108,7 +108,7 @@ function Get-CtxVDA {
 function Get-CtxAdmin {
   Param ([string]$DDC)
   $CTXAdm = Get-AdminAdministrator -AdminAddress $DDC
-  $CTXAdmHtml = $CTXAdm | Select-Object -Property Name,Rights,Enabled  | Sort-Object -Property Name |
+  $CTXAdmHtml = $CTXAdm | Select-Object -Property Name,@{n='RightsList';e={$_.Rights -join ';'}},Enabled  | Sort-Object -Property Name |
     ConvertTo-Html -Fragment -PreContent '<br><br><h2>Administrators</h2>' | Out-String
   $CTXAdmHtml
 }
