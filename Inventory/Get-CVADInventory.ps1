@@ -31,7 +31,7 @@ body {font-family: Arial, Helvetica, sans-serif;}
 h1,h2 {text-align: center;color:#001773;}
 table.ListTable {font-family: Arial, Helvetica, sans-serif;border-collapse: collapse;width: auto;}
 th.Test {background-color:green;}
-h2.Test {color:green}
+h1.Test,h2.Test {color:green}
 table {font-family: Arial, Helvetica, sans-serif;border-collapse: collapse;width: 100%;}
 td, th {border: 1px solid #ddd;padding: 8px;}
 tr:nth-child(even){background-color: #f2f2f2;}
@@ -65,8 +65,9 @@ function Get-CtxDelGrp {
 }
 function Get-CtxDDC {
   Param ([string]$DDC)
+  $Now = Get-Date
   $CTXDDC = Get-BrokerController -AdminAddress $DDC
-  $CTXDDCHtml = $CTXDDC | Select-Object -Property DNSName,ControllerVersion,OSType,State,LastStartTime,LastActivityTime | Sort-Object -Property DNSName |
+  $CTXDDCHtml = $CTXDDC | Select-Object -Property DNSName,ControllerVersion,OSType,State,@{n='Uptime';e={$now - $_.LastStartTime}},LastActivityTime | Sort-Object -Property DNSName |
     ConvertTo-Html -Fragment -PreContent '<br><br><h2>Delivery Controllers</h2>' | Out-String
   $CTXDDCHtml
 }
@@ -130,6 +131,15 @@ function Get-CtxScope {
   $CTXScopeHtml
 }
 
+function Get-CtxPerm {
+  Param ([string]$DDC)
+  $CTXPerm = Get-AdminPermission -AdminAddress $DDC
+  $CTXPermHtml = $CTXPerm | Select-Object -Property Name,GroupName,ReadOnly | Sort-Object GroupName,Name |
+    ConvertTo-Html -Fragment -PreContent '<br><br><h2>Permissions</h2>' | Out-String
+  $CTXPermHtml
+}
+
+# ------ test functions ------
 function Test-CtxBkrDB {
   Param ([string]$DDC)
   $CTXBkrDB = New-Object -TypeName psobject -Property (Test-BrokerDBConnection -DBConnection (Get-BrokerDBConnection -AdminAddress $DDC)).ExtraInfo
@@ -157,7 +167,7 @@ function Test-SvcStatus {
 # ----------------Main Code ----------------
 try {
   if (-not (Test-Path -PathType Container -Path C:\inetpub\wwwroot\reports)) {
-    New-Item -Path C:\inetpub\wwwroot -Name Reports -ItemType Directory -ErrorAction Stop
+    New-Item -Path C:\inetpub\wwwroot -Name Reports -ItemType Directory -ErrorAction Stop | Out-Null
   }
 }
 catch {write-warning "could not create the reports path under the IIS web directory"}
@@ -173,11 +183,16 @@ $VDAFrag = Get-CtxVDA -DDC $DeliveryController
 $AdminFrag = Get-CtxAdmin -DDC $DeliveryController
 $RoleFrag = Get-CtxRole -DDC $DeliveryController
 $ScopeFrag = Get-CtxScope -DDC $DeliveryController
-
+$PermFrag = Get-CtxPerm -DDC $DeliveryController
+#-----
 $TestBkrDBFrag = Test-CtxBkrDB -DDC $DeliveryController
 $TestSvcRegFrag = Test-SvcReg -DDC $DeliveryController
 $TestSvcStatFrag = Test-SvcStatus -DDC $DeliveryController
 
 
-$WebPage = ConvertTo-Html -Head (Get-CSS) -Body $SiteFrag,$ZoneFrag,$DDCFrag,$MachCatFrag,$DelGrpFrag,$AppsFrag,$SessFrag,$VDAFrag,$AdminFrag,$RoleFrag,$ScopeFrag,'<br><br><br><br><hr>',$TestBkrDBFrag,$TestSvcStatFrag,$TestSvcRegFrag
+$WebPage = ConvertTo-Html -Head (Get-CSS) -Body $SiteFrag,$ZoneFrag,$DDCFrag,$MachCatFrag,
+                                                $DelGrpFrag,$AppsFrag,$SessFrag,$VDAFrag,
+                                                $AdminFrag,$RoleFrag,$ScopeFrag,$PermFrag,
+                                                '<br><br><br><br><hr><br><h1 class=Test>Results from Citrix tests</h1><br>',
+                                                $TestBkrDBFrag,$TestSvcStatFrag,$TestSvcRegFrag
 $WebPage | Out-File C:\inetpub\wwwroot\reports\index.html -Force 
