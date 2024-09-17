@@ -29,13 +29,14 @@ Get-NSLoadBalancing {
     [WebRequestSession]$WebSession
   )
   if (-not $WebSession) {$WebSession = Connect-NSAppliance}
-  $URL = "http://$($WebSession.))/nitro/v1/config/login"
+  $URL = "http://$($WebSession.Headers.NSIPAddress)/nitro/v1/config/lbserver"
   $RestMethodSplat = @{
-    Method          = 'post'
+    Method          = 'get'
     Uri             = $URL
     ContentType     = 'application/json'
     SessionVariable = 'NSSession'
     Body            = $NSLoadBalanceJson
   }
-  Invoke-RestMethod 
+  $LoadBalance = Invoke-RestMethod @RestMethodSplat
+  return $LoadBalance
 }
