@@ -11,20 +11,31 @@ function Connect-NSAppliance {
     }
   }
 
-  $JsonAuthInfo = $AuthInfo | ConvertTo-Json
+  $JsonAuthInfo = $AuthInfo | ConvertTo-Json -Depth 8
   $RestMethodSplat = @{
     Method          = 'post'
     Uri             = $URL
-    ContentType     = 'Application/json'
+    ContentType     = 'application/json'
     SessionVariable = 'NSSession'
     Body            = $JsonAuthInfo
+    Headers         = @{NSIPAddress = $NSMgmtIpAddress}
   }
-  Invoke-RestMethod @RestMethodSplat | Out-Null 
+  Invoke-RestMethod @RestMethodSplat -Headers| Out-Null 
   return $NSSession
 } 
 
 Get-NSLoadBalancing {
   Param (
-    [websession]$WebSession
+    [WebRequestSession]$WebSession
   )
+  if (-not $WebSession) {$WebSession = Connect-NSAppliance}
+  $URL = "http://$($WebSession.))/nitro/v1/config/login"
+  $RestMethodSplat = @{
+    Method          = 'post'
+    Uri             = $URL
+    ContentType     = 'application/json'
+    SessionVariable = 'NSSession'
+    Body            = $NSLoadBalanceJson
+  }
+  Invoke-RestMethod 
 }
