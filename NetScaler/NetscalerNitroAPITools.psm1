@@ -26,17 +26,33 @@ function Connect-NSAppliance {
 
 function Get-NSLoadBalancing {
   Param (
-    [WebRequestSession]$WebSession
+    [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession
   )
   if (-not $WebSession) {$WebSession = Connect-NSAppliance}
-  $URL = "http://$($WebSession.Headers.NSIPAddress)/nitro/v1/config/lbserver"
+  $URL = "http://$($WebSession.Headers.NSIPAddress)/nitro/v1/config/lbvserver"
   $RestMethodSplat = @{
     Method          = 'get'
     Uri             = $URL
     ContentType     = 'application/json'
-    SessionVariable = 'NSSession'
+    WebSession      = 'NSSession'
     Body            = $NSLoadBalanceJson
   }
-  $LoadBalance = Invoke-RestMethod @RestMethodSplat
-  return $LoadBalance
+  $Result = Invoke-RestMethod @RestMethodSplat
+  return $Result
+}
+
+function Get-NSLoadBalancingServiceBinding {
+  Param (
+    [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession
+  )
+  if (-not $WebSession) {$WebSession = Connect-NSAppliance}
+  $URL = "http://$($WebSession.Headers.NSIPAddress)/nitro/v1/config/lbvserver_service_binding"
+  $RestMethodSplat = @{
+    Method          = 'get'
+    Uri             = $URL
+    ContentType     = 'application/json'
+    WebSession      = 'NSSession'
+  }
+  $Result = Invoke-RestMethod @RestMethodSplat
+  return $Result
 }
