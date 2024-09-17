@@ -34,11 +34,10 @@ function Get-NSLoadBalancing {
     Method          = 'get'
     Uri             = $URL
     ContentType     = 'application/json'
-    WebSession      = 'NSSession'
-    Body            = $NSLoadBalanceJson
+    WebSession      = $WebSession
   }
   $Result = Invoke-RestMethod @RestMethodSplat
-  return $NSSession
+  return $Result
 }
 
 function Get-NSLoadBalancingServiceBinding {
@@ -51,7 +50,7 @@ function Get-NSLoadBalancingServiceBinding {
     Method          = 'get'
     Uri             = $URL
     ContentType     = 'application/json'
-    WebSession      = 'NSSession'
+    WebSession      = $WebSession
   }
   $Result = Invoke-RestMethod @RestMethodSplat
   return $Result
