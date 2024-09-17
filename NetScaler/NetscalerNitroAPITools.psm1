@@ -20,7 +20,7 @@ function Connect-NSAppliance {
     Body            = $JsonAuthInfo
     Headers         = @{NSIPAddress = $NSMgmtIpAddress}
   }
-  Invoke-RestMethod @RestMethodSplat -Headers| Out-Null 
+  Invoke-RestMethod @RestMethodSplat | Out-Null 
   return $NSSession
 } 
 
