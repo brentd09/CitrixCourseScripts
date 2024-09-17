@@ -38,7 +38,7 @@ function Get-NSLoadBalancing {
     Body            = $NSLoadBalanceJson
   }
   $Result = Invoke-RestMethod @RestMethodSplat
-  return $Result
+  return $NSSession
 }
 
 function Get-NSLoadBalancingServiceBinding {
