@@ -24,7 +24,7 @@ function Connect-NSAppliance {
   return $NSSession
 } 
 
-Get-NSLoadBalancing {
+function Get-NSLoadBalancing {
   Param (
     [WebRequestSession]$WebSession
   )
