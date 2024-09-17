@@ -56,12 +56,30 @@ function Get-NSLoadBalancingServiceBinding {
   return $Result
 }
 
-function Get-NSServer {
+function Get-NSMonitorBinding {
   Param (
     [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession
   )
   if (-not $WebSession) {$WebSession = Connect-NSAppliance}
-  $URL = "http://$($WebSession.Headers.NSIPAddress)/nitro/v1/config/lbmonitorbindings?view=detail"
+  $URL = "http://$($WebSession.Headers.NSIPAddress)/nitro/v1/config/lbmonitor_binding?bulkbindings=yes"
+  $RestMethodSplat = @{
+    Method          = 'get'
+    Uri             = $URL
+    ContentType     = 'application/json'
+    WebSession      = $WebSession
+  }
+  $Result = Invoke-RestMethod @RestMethodSplat
+  return $Result
+}
+
+function Get-NSInformation {
+  Param (
+    [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession,
+    [string]$APISyntax = 'lbserver'
+  )
+  if (-not $WebSession) {$WebSession = Connect-NSAppliance}
+  $APISyntax = $APISyntax.TrimStart('/')
+  $URL = "http://$($WebSession.Headers.NSIPAddress)/nitro/v1/config/$APISyntax"
   $RestMethodSplat = @{
     Method          = 'get'
     Uri             = $URL
