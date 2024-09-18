@@ -48,7 +48,9 @@ function New-NSApplianceSession {
 function Get-NSConfiguration {
   Param (
     [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession,
-    [ValidateSet('lbvserver','lbvserver_binding?bulkbindings=yes','server','service','rewritepolicy')]
+    [ValidateSet('lbvserver','lbvserver_binding?bulkbindings=yes','server','service','rewritepolicy',
+                 'interface','nsip'
+    )]
     [string]$APISyntax = 'lbvserver'
   )
   if (-not $WebSession) {$WebSession = Connect-NSAppliance}
