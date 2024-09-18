@@ -1,4 +1,26 @@
-function Connect-NSAppliance {
+<#
+.SYNOPSIS
+  This module allows PowerShell to query and set configurations for a Citrix NetScaler
+.DESCRIPTION
+  There are only a few functions in this module as the modules to query different areas 
+  of the NetScaler are the same except for the end of the URL that defines the API that
+  is being queried. Firstly you must create a new Session to the NetScaler by using the 
+  New-NSApplianceSession command, this will produce a Session Token object that then can 
+  be used by every other command and will not require re-authentication. After creating 
+  the TokenObject you can then run:
+  Get-NSConfiguration -WebSession $Token -APISyntax lbvserver and this will list the Load
+  Balancing Virtual Servers from the NetScaler
+.NOTES
+  Created by: Brent Denny
+  Created on: 17-Sep-2024
+
+  ChangeLog
+  What                                                                        When
+  ----                                                                        ----
+  Reduced the number of functions to just three, reducing complexity          18-Sep-2024   
+#>
+
+function New-NSApplianceSession {
   Param (
     [pscredential]$NSCred = (Get-Credential -UserName nsroot -Message 'Enter the Netscaler credentials'),
     [string]$NSMgmtIpAddress = '192.168.10.103'
@@ -23,11 +45,10 @@ function Connect-NSAppliance {
   Invoke-RestMethod @RestMethodSplat | Out-Null 
   return $NSSession
 } 
-
 function Get-NSConfiguration {
   Param (
     [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession,
-    [ValidateSet()]
+    [ValidateSet('lbvserver','lbvserver_binding?bulkbindings=yes','server','service','rewritepolicy')]
     [string]$APISyntax = 'lbvserver'
   )
   if (-not $WebSession) {$WebSession = Connect-NSAppliance}
@@ -42,26 +63,25 @@ function Get-NSConfiguration {
   $Result = Invoke-RestMethod @RestMethodSplat
   return $Result
 }
-
-function Set-NSConfiguration {
-  Param (
-    [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession,
-    [ValidateSet()]
-    [string]$APISyntax = 'lbvserver',
-    [hashtable]$PayloadSyntax
-  )
-  if (-not $WebSession) {$WebSession = Connect-NSAppliance}
-  $APISyntax = $APISyntax.TrimStart('/')
-  $URL = "http://$($WebSession.Headers.NSIPAddress)/nitro/v1/config/$APISyntax"
-  $Payload = $PayloadSyntax
-  $JsonPayload = $Payload | ConvertTo-Json -Depth 8
-  $RestMethodSplat = @{
-    Method          = 'put'
-    Uri             = $URL
-    ContentType     = 'application/json'
-    WebSession      = $WebSession
-    Body            = $JsonPayload
-  }
-  $Result = Invoke-RestMethod @RestMethodSplat
-  return $Result
-}
+# function Set-NSConfiguration {
+#   Param (
+#     [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession,
+#     [ValidateSet()]
+#     [string]$APISyntax = 'lbvserver',
+#     [hashtable]$PayloadSyntax
+#   )
+#   if (-not $WebSession) {$WebSession = Connect-NSAppliance}
+#   $APISyntax = $APISyntax.TrimStart('/')
+#   $URL = "http://$($WebSession.Headers.NSIPAddress)/nitro/v1/config/$APISyntax"
+#   $Payload = $PayloadSyntax
+#   $JsonPayload = $Payload | ConvertTo-Json -Depth 8
+#   $RestMethodSplat = @{
+#     Method          = 'put'
+#     Uri             = $URL
+#     ContentType     = 'application/json'
+#     WebSession      = $WebSession
+#     Body            = $JsonPayload
+#   }
+#   $Result = Invoke-RestMethod @RestMethodSplat
+#   return $Result
+# }
