@@ -65,8 +65,13 @@ function New-NSApplianceSession {
     SessionVariable = 'NSSession'
     Body            = $JsonAuthInfo
     Headers         = @{NSIPAddress = $NSMgmtIpAddress}
+    ErrorAction     = 'Stop'
   }
-  Invoke-RestMethod @RestMethodSplat | Out-Null 
+  try {Invoke-RestMethod @RestMethodSplat | Out-Null}
+  catch {
+    Write-Warning "The Netscaler with IPaddress $NSMgmtIpAddress cannot complete the authentication, check and try again"
+    break
+  } 
   return $NSSession
 } 
 function Get-NSConfiguration {
@@ -128,7 +133,12 @@ function Get-NSConfiguration {
     Uri             = $URL
     ContentType     = 'application/json'
     WebSession      = $WebSession
+    ErrorAction     = 'Stop'
   }
-  $Result = Invoke-RestMethod @RestMethodSplat
+  try {$Result = Invoke-RestMethod @RestMethodSplat}
+  catch {
+    Write-Warning "The Netscaler with IPaddress $NSMgmtIpAddress cannot complete the authentication, check and try again"
+    break
+  } 
   return $Result
 }
