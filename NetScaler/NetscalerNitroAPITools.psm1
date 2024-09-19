@@ -137,7 +137,7 @@ function Get-NSConfiguration {
   }
   try {$Result = Invoke-RestMethod @RestMethodSplat}
   catch {
-    Write-Warning "The Netscaler with IPaddress $($WebSession.Headers.NSIPAddress) cannot complete the authentication, check and try again"
+    Write-Warning "The Netscaler with IPaddress $($WebSession.Headers.NSIPAddress) cannot complete the API request, check and try again"
     break
   } 
   return $Result
