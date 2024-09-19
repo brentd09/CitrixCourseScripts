@@ -1,16 +1,5 @@
 <#
-.SYNOPSIS
-  This module allows PowerShell to query and set configurations for a Citrix NetScaler
-.DESCRIPTION
-  There are only a few functions in this module as the modules to query different areas 
-  of the NetScaler are the same except for the end of the URL that defines the API that
-  is being queried. Firstly you must create a new Session to the NetScaler by using the 
-  New-NSApplianceSession command, this will produce a Session Token object that then can 
-  be used by every other command and will not require re-authentication. After creating 
-  the TokenObject you can then run:
-  Get-NSConfiguration -WebSession $Token -APISyntax lbvserver and this will list the Load
-  Balancing Virtual Servers from the NetScaler
-.NOTES
+NOTES
   Created by: Brent Denny
   Created on: 17-Sep-2024
 
@@ -18,6 +7,7 @@
   What                                                                        When
   ----                                                                        ----
   Reduced the number of functions to just three, reducing complexity          18-Sep-2024   
+  Added Error checking and added help                                         19-Sep-2024
 #>
 
 function New-NSApplianceSession {
@@ -79,8 +69,9 @@ function Get-NSConfiguration {
   .SYNOPSIS
     This PowerShell tool gets information from a Citrix NetScaler using Nitro API calls
   .DESCRIPTION
-    There is little difference between the API calls when getting information from the NetScaler
-    and so this cmdlet can retrieve any information from the NetScaler by doing these simple steps:
+    When getting configuration information from the NetScaler via Nitro API calls, it is 
+    apparent that there is very little difference in the API call's URI and so this cmdlet 
+    can retrieve any information from the NetScaler by doing these simple steps:
     1.Authenticating to the NetScaler and setting up a session object, this object has been further 
       Enhanced to include the IP addrfess of the NetScaler so that subsequent commands do not 
       need to be supplied with this detail)
@@ -100,18 +91,19 @@ function Get-NSConfiguration {
     Get-NSConfiguration -WebSession $NSSession -APISyntax lbvserver
     The WebSession parameter accepts the token produced by the session in the New-NSApplianceSession cmdlet. 
   .PARAMETER APISyntax
-    When getting information from the NetScaler by the API calls the API syntax is very similar across all of 
-    the different API calls, from https://developer-docs.netscaler.com/en-us/adc-nitro-api/current-release/configuration
-    they all have the following syntax for configuration:  
-    
+    When getting configuration information from the NetScaler by the API calls the API syntax is very similar 
+    across all of the different API calls, they all have the following syntax for configuration: 
+    Nitro API Docs: https://developer-docs.netscaler.com/en-us/adc-nitro-api/current-release/configuration
+     
     URL: http://<netscaler-ip-address>/nitro/v1/config/lbvserver 
     URL: http://<netscaler-ip-address>/nitro/v1/config/lbvserver_binding
     
     The APISyntax parameter just requires the information after the http://<netscaler-ip-address>/nitro/v1/config/
-    So the APISyntax parameter just requires the last part of the URL: lbvserver or lbvserver_binding
+    So the APISyntax parameter just requires the last part of the URL: lbvserver or lbvserver_binding etc.
     
-    The API calls are being validated from a set so that when typing the command Intellisense will show a selection 
-    list of API calls that can be made, to extend this list, modify the ValidateSet directive. 
+    The API calls are being validated from a set in the Parameter Block so that when typing the command 
+    Intellisense will show a selection list of API calls that can be made, to extend this list, modify 
+    the ValidateSet directive in the ParamBlock. 
   .EXAMPLE
     Get-NSConfiguration -WebSession $NSSession -APISyntax lbvserver
     This will produce an object that shows the exit code from the API call and a property "lbvserver" that
