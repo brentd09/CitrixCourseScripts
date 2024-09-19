@@ -6,7 +6,7 @@ NOTES
   ChangeLog
   What                                                                        When
   ----                                                                        ----
-  Reduced the number of functions to just three, reducing complexity          18-Sep-2024   
+  Reduced the number of functions to just two, reducing complexity            18-Sep-2024   
   Added Error checking and added help                                         19-Sep-2024
 #>
 
