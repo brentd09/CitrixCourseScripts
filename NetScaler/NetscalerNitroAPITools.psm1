@@ -8,6 +8,7 @@ NOTES
   ----                                                                        ----
   Reduced the number of functions to just two, reducing complexity            18-Sep-2024   
   Added Error checking and added help                                         19-Sep-2024
+  Removed the ValidateSet as it was too restrictive                           20-Sep-2024 
 #>
 
 function New-NSApplianceSession {
@@ -100,10 +101,7 @@ function Get-NSConfiguration {
     
     The APISyntax parameter just requires the information after the http://<netscaler-ip-address>/nitro/v1/config/
     So the APISyntax parameter just requires the last part of the URL: lbvserver or lbvserver_binding etc.
-    
-    The API calls are being validated from a set in the Parameter Block so that when typing the command 
-    Intellisense will show a selection list of API calls that can be made, to extend this list, modify 
-    the ValidateSet directive in the ParamBlock. 
+     
   .EXAMPLE
     Get-NSConfiguration -WebSession $NSSession -APISyntax lbvserver
     This will produce an object that shows the exit code from the API call and a property "lbvserver" that
@@ -112,9 +110,6 @@ function Get-NSConfiguration {
   [CmdletBinding()]
   Param (
     [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession,
-    [ValidateSet('lbvserver','lbvserver_binding?bulkbindings=yes','server','service','rewritepolicy',
-                 'interface','nsip','responderpolicy','servicegroup','dnsnameserver'
-    )]
     [string]$APISyntax = 'lbvserver'
   )
   if (-not $WebSession) {$WebSession = Connect-NSAppliance}
