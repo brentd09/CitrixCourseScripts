@@ -27,10 +27,31 @@ function Convert-NitroApiWebTable {
     $RawConvert = $Line -replace '<td>(.+?)</td>','$1^' -replace '</td>',' '
     $RawConvert.trim('^') 
   }
-  $CsvHeaders = ($Headers -replace '<.*?>',',' -replace ',+',',').trim(',') -split ','
+  $CsvHeaders = ($Headers -replace '<.*?>',',' -replace ',+',',').trim(',') -split ',' -replace '\s+',''
   $TableToObject = $CsvBody | ConvertFrom-Csv -Delimiter '^' -Header $CsvHeaders
-  return $TableToObject
+  $NitroApiObject = $TableToObject | Out-GridView -Title 'Select which elements will be included in the configuration' -OutputMode Multiple
+  return $NitroApiObject
+}
+
+
+function ConvertTo-NetscalerNitroJson {
+  param (
+    $NitroApiObject
+  )
+  $ApiHashtable = [ordered]@{}
+  foreach ($Object in $NitroApiObject) {
+    $Value = Read-Host -Prompt "`nValue for $($Object.Name) `n$($Object.Description)"
+    switch ($Object.DataType) {
+      integer { [int]$TypeCastValue = $Value  }
+      string  { [string]$TypeCastValue = $Value  }
+      Default {}
+    }
+    $ApiHashtable.Add($Object.Name,$TypeCastValue)
+  }
+  $ApiJson = $ApiHashtable | ConvertTo-Json -Depth 9
+  return $ApiJson
 }
 
 $Obj = Convert-NitroApiWebTable
-$Obj | fl
+$Json = ConvertTo-NetscalerNitroJson -NitroApiObject $Obj
+$Json
