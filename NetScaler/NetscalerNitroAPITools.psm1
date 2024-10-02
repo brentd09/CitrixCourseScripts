@@ -175,8 +175,7 @@ function Set-NSConfiguration {
   [CmdletBinding()]
   Param (
     [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession,
-    [string]$APISyntax = 'lbvserver',
-    [hashtable]$
+    [string]$APISyntax = 'lbvserver'
   )
   if (-not $WebSession) {$WebSession = Connect-NSAppliance}
   $APISyntax = $APISyntax.TrimStart('/')
