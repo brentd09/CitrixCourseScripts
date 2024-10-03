@@ -197,20 +197,12 @@ function Set-NSConfiguration {
   return $Result
 }
 
-function Get-NitroApiHtmlContent {
-  [CmdletBinding()]
-  Param (
+function Convert-NitroWebContentToPSObject {
+  param (
     [string]$URL = 'https://developer-docs.netscaler.com/en-us/adc-nitro-api/current-release/configuration/lb/lbvserver#operations'
   )
   $WebResult = Invoke-WebRequest -Uri $URL
-  return $WebResult.Content
-}
-
-function Convert-NitroApiHtmlTableToPSObject {
-  param (
-    [Parameter(Mandatory=$true)]
-    $WebContent
-  )
+  $WebContent = $WebResult.Content
   $SplitContent = $WebContent -split "`n"
   $MinifiedContent = $SplitContent -join '' -replace '\s{2,}',''
   $TableStartIndex = $MinifiedContent.IndexOf('<table')
@@ -227,17 +219,11 @@ function Convert-NitroApiHtmlTableToPSObject {
 function Select-NitroElement {
   param (
     [Parameter(Mandatory=$true)]
+    $NitroFeatureName,
+    [Parameter(Mandatory=$true)]
     $TableObject
   )
   $SelectedApiElements = $TableObject | Out-GridView -Title 'Select the elements you need for the API configuration' -OutputMode Multiple
-  return $SelectedApiElements 
-}
-
-function New-NitroHash {
-  param (
-    [Parameter(Mandatory=$true)]
-    $SelectedApiElements
-  )
   $ApiHashElements = @{}
   Write-Host -ForegroundColor Green "Enter values for each of the API elements"
   foreach ($Element in $SelectedApiElements) {
@@ -256,19 +242,10 @@ function New-NitroHash {
     }
     $ApiHashElements.Add($Element.Name,$TypeCastValue)
   }
-  return $ApiHashElements
-}
-
-function Convert-NitroHashToJson {
-  param (
-    [Parameter(Mandatory=$true)]
-    $NitroFeatureName,
-    [Parameter(Mandatory=$true)]
-    $ApiHashElements
-  )
   $NitroApiObject = [PSCustomObject]@{
     $NitroFeatureName = $ApiHashElements
   }
   $JsonObject = $NitroApiObject | ConvertTo-Json -Depth 8 
   return $JsonObject
 }
+
