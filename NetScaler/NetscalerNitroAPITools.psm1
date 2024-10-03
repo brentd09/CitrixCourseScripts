@@ -234,7 +234,7 @@ function Select-NitroElementToJson {
     [PSCustomObject]$TableObject
   )
   $SelectedApiElements = $TableObject | Out-GridView -Title 'Select the elements you need for the API configuration' -OutputMode Multiple
-  $ApiHashElements = @{}
+  $ApiHashElements = [ordered]@{}
   Write-Host -ForegroundColor Green "Enter values for each of the API elements"
   foreach ($Element in $SelectedApiElements) {
     Write-Host 
