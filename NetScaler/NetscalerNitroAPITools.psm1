@@ -224,7 +224,7 @@ function Convert-HtmlTableToPSObject {
   return $TableObject
 }
 
-function Select_NitroApiElement {
+function Select-NitroApiElement {
   param (
     [Parameter(Mandatory=$true)]
     $TableObject
