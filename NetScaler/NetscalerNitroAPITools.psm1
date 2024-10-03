@@ -81,17 +81,18 @@ function Get-NSConfiguration {
       NS appliance.
     3.Once the session information is captured this cmdlet can retireive information by doing the 
       following:
-      Example $LBVS = Get-NSConfiguration -WebSession $NSSession -APISyntax lbvserver
+      Example $LBVS = Get-NSConfiguration -WebSession $NSSession -NitroApiFeatureName lbvserver
               $LBVS.lbvserver | Format-Table
   .NOTES
     Created By: Brent Denny
+    Created on: 25-Sep-2024
   .PARAMETER WebSession
     Before getting the configuration from the NetScaler, it is best to create a session to authenticate to the 
     NetScaler using $NSSession = New-NSApplianceSession -NSMgmtIpAddress 192.168.10.103. Once the session 
     variable is established you can then use the following command: 
     Get-NSConfiguration -WebSession $NSSession -APISyntax lbvserver
     The WebSession parameter accepts the token produced by the session in the New-NSApplianceSession cmdlet. 
-  .PARAMETER APISyntax
+  .PARAMETER NitroApiFeatureName
     When getting configuration information from the NetScaler by the API calls the API syntax is very similar 
     across all of the different API calls, they all have the following syntax for configuration: 
     Nitro API Docs: https://developer-docs.netscaler.com/en-us/adc-nitro-api/current-release/configuration
@@ -99,22 +100,22 @@ function Get-NSConfiguration {
     URL: http://<netscaler-ip-address>/nitro/v1/config/lbvserver 
     URL: http://<netscaler-ip-address>/nitro/v1/config/lbvserver_binding
     
-    The APISyntax parameter just requires the information after the http://<netscaler-ip-address>/nitro/v1/config/
-    So the APISyntax parameter just requires the last part of the URL: lbvserver or lbvserver_binding etc.
+    The NitroApiFeatureName parameter just requires the information after the http://<netscaler-ip-address>/nitro/v1/config/
+    So the NitroApiFeatureName parameter just requires the last part of the URL: lbvserver or lbvserver_binding etc.
      
   .EXAMPLE
-    Get-NSConfiguration -WebSession $NSSession -APISyntax lbvserver
+    Get-NSConfiguration -WebSession $NSSession -NitroApiFeatureName lbvserver
     This will produce an object that shows the exit code from the API call and a property "lbvserver" that
     contains all of the Load Balancing Virtual Servers from the NetScaler
   #>
   [CmdletBinding()]
   Param (
     [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession,
-    [string]$APISyntax = 'lbvserver'
+    [string]$NitroApiFeatureName = 'lbvserver'
   )
   if (-not $WebSession) {$WebSession = Connect-NSAppliance}
-  $APISyntax = $APISyntax.TrimStart('/')
-  $URL = "http://$($WebSession.Headers.NSIPAddress)/nitro/v1/config/$APISyntax"
+  $NitroApiFeatureName = $NitroApiFeatureName.TrimStart('/')
+  $URL = "http://$($WebSession.Headers.NSIPAddress)/nitro/v1/config/$NitroApiFeatureName"
   $RestMethodSplat = @{
     Method          = 'get'
     Uri             = $URL
@@ -175,12 +176,12 @@ function Set-NSConfiguration {
   [CmdletBinding()]
   Param (
     [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession,
-    [string]$NitroFeatureName = 'lbvserver',
+    [string]$NitroApiFeatureName = 'lbvserver',
     $NitroJsonBody
   )
   if (-not $WebSession) {$WebSession = Connect-NSAppliance}
-  $NitroFeatureName = $NitroFeatureName.TrimStart('/')
-  $URL = "http://$($WebSession.Headers.NSIPAddress)/nitro/v1/config/$NitroFeatureName"
+  $NitroApiFeatureName = $NitroApiFeatureName.TrimStart('/')
+  $URL = "http://$($WebSession.Headers.NSIPAddress)/nitro/v1/config/$NitroApiFeatureName"
   $RestMethodSplat = @{
     Method          = 'post'
     Uri             = $URL
@@ -198,25 +199,28 @@ function Set-NSConfiguration {
 }
 
 function Convert-NitroWebContentToPSObject {
+  [CmdletBinding()]
   param (
-    [string]$URL = 'https://developer-docs.netscaler.com/en-us/adc-nitro-api/current-release/configuration/lb/lbvserver#operations'
+    [string]$NitroApiFeatureName = 'lbvserver'
   )
+  $URL = "https://developer-docs.netscaler.com/en-us/adc-nitro-api/current-release/configuration/lb/${NitroApiFeatureName}#operations"
   $WebResult = Invoke-WebRequest -Uri $URL
-  $WebContent = $WebResult.Content
-  $SplitContent = $WebContent -split "`n"
+  $WebContent      = $WebResult.Content
+  $SplitContent    = $WebContent -split "`n"
   $MinifiedContent = $SplitContent -join '' -replace '\s{2,}',''
   $TableStartIndex = $MinifiedContent.IndexOf('<table')
   $TableEndIndex   = $MinifiedContent.IndexOf('</table>') + 8
   $EntireHtmlTable = $MinifiedContent.Substring($TableStartIndex,($TableEndIndex-$TableStartIndex))
   $HtmlTableHeader = ($EntireHtmlTable -replace '.+(\<thead.+\<\/thead>).+','$1') -replace '\</?thead>',''
   $HtmlTableBody   = ($EntireHtmlTable -replace '.+(\<tbody.+\<\/tbody>).+','$1') -replace '\</?tbody>',''
-  $CsvTableHeader = ($HtmlTableHeader -replace '<.+?><.+?>', ',' -replace '\s+','').trim(',') -split ',' 
-  $SplitTableBody = ($HtmlTableBody -replace '\<\/td\>\<\/tr\>',"`n") -replace '\<\/td\>\<td.*?\>','^' -split '^' -replace '\<tr\>\<td\>','' -replace '<(.+?)></\1>','$1' -replace '&(lt|gt);',''
-  $TableObject = $SplitTableBody | ConvertFrom-Csv -Delimiter '^' -Header $CsvTableHeader
+  $CsvTableHeader  = ($HtmlTableHeader -replace '<.+?><.+?>', ',' -replace '\s+','').trim(',') -split ',' 
+  $SplitTableBody  = ($HtmlTableBody -replace '\<\/td\>\<\/tr\>',"`n") -replace '\<\/td\>\<td.*?\>','^' -split '^' -replace '\<tr\>\<td\>','' -replace '<(.+?)></\1>','$1' -replace '&(lt|gt);',''
+  $TableObject     = $SplitTableBody | ConvertFrom-Csv -Delimiter '^' -Header $CsvTableHeader
   return $TableObject
 }
 
-function Select-NitroElement {
+function Select-NitroElementToJson {
+  [CmdletBinding()]
   param (
     [Parameter(Mandatory=$true)]
     $NitroFeatureName,
