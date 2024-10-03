@@ -22,5 +22,5 @@ Import-Module NetscalerNitroApiTools
 
 $NSSession = New-NSApplianceSession
 $NitroObject = Convert-NitroWebContentToPSObject
-$NitroJson = Select-NitroElement -NitroFeatureName $NitroApiFeatureName -NitroObject $NitroObject
+$NitroJson = Select-NitroElementToJson -NitroFeatureName $NitroApiFeatureName -NitroObject $NitroObject
 Set-NSConfiguration -WebSession $NSSession -NitroFeatureName $NitroApiFeatureName -NitroJsonBody $NitroJson
