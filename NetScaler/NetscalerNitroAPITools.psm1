@@ -85,7 +85,7 @@ function Get-NSConfiguration {
               $LBVS.lbvserver | Format-Table
   .NOTES
     Created By: Brent Denny
-    Created on: 25-Sep-2024
+    Created on: 19-Sep-2024
   .PARAMETER WebSession
     Before getting the configuration from the NetScaler, it is best to create a session to authenticate to the 
     NetScaler using $NSSession = New-NSApplianceSession -NSMgmtIpAddress 192.168.10.103. Once the session 
@@ -110,8 +110,10 @@ function Get-NSConfiguration {
   #>
   [CmdletBinding()]
   Param (
+    [Parameter(Mandatory=$true)]
     [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession,
-    [string]$NitroApiFeatureName = 'lbvserver'
+    [Parameter(Mandatory=$true)]
+    [string]$NitroApiFeatureName 
   )
   if (-not $WebSession) {$WebSession = Connect-NSAppliance}
   $NitroApiFeatureName = $NitroApiFeatureName.TrimStart('/')
@@ -175,9 +177,12 @@ function Set-NSConfiguration {
   #>
   [CmdletBinding()]
   Param (
+    [Parameter(Mandatory=$true)]
     [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession,
-    [string]$NitroApiFeatureName = 'lbvserver',
-    $NitroJsonBody
+    [Parameter(Mandatory=$true)]
+    [string]$NitroApiFeatureName,
+    [Parameter(Mandatory=$true)]
+    [string]$NitroJsonBody
   )
   if (-not $WebSession) {$WebSession = Connect-NSAppliance}
   $NitroApiFeatureName = $NitroApiFeatureName.TrimStart('/')
@@ -201,7 +206,8 @@ function Set-NSConfiguration {
 function Convert-NitroWebContentToPSObject {
   [CmdletBinding()]
   param (
-    [string]$NitroApiFeatureName = 'lbvserver'
+    [Parameter(Mandatory=$true)]
+    [string]$NitroApiFeatureName
   )
   $URL = "https://developer-docs.netscaler.com/en-us/adc-nitro-api/current-release/configuration/lb/${NitroApiFeatureName}#operations"
   $WebResult = Invoke-WebRequest -Uri $URL
@@ -223,9 +229,9 @@ function Select-NitroElementToJson {
   [CmdletBinding()]
   param (
     [Parameter(Mandatory=$true)]
-    $NitroFeatureName,
+    [string]$NitroFeatureName,
     [Parameter(Mandatory=$true)]
-    $TableObject
+    [PSCustomObject]$TableObject
   )
   $SelectedApiElements = $TableObject | Out-GridView -Title 'Select the elements you need for the API configuration' -OutputMode Multiple
   $ApiHashElements = @{}
