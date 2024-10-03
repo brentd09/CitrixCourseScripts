@@ -197,7 +197,7 @@ function Set-NSConfiguration {
   return $Result
 }
 
-function Get-HtmlContent {
+function Get-NitroApiHtmlContent {
   [CmdletBinding()]
   Param (
     [string]$URL = 'https://developer-docs.netscaler.com/en-us/adc-nitro-api/current-release/configuration/lb/lbvserver#operations'
@@ -206,7 +206,7 @@ function Get-HtmlContent {
   return $WebResult.Content
 }
 
-function Convert-HtmlTableToPSObject {
+function Convert-NitroApiHtmlTableToPSObject {
   param (
     [Parameter(Mandatory=$true)]
     $WebContent
@@ -224,7 +224,7 @@ function Convert-HtmlTableToPSObject {
   return $TableObject
 }
 
-function Select-NitroApiElement {
+function Select-NitroElement {
   param (
     [Parameter(Mandatory=$true)]
     $TableObject
@@ -233,7 +233,7 @@ function Select-NitroApiElement {
   return $SelectedApiElements 
 }
 
-function New-NitroApiObject {
+function New-NitroHash {
   param (
     [Parameter(Mandatory=$true)]
     $SelectedApiElements
@@ -259,7 +259,7 @@ function New-NitroApiObject {
   return $ApiHashElements
 }
 
-function New-NitroJson {
+function Convert-NitroHashToJson {
   param (
     [Parameter(Mandatory=$true)]
     $NitroFeatureName,
