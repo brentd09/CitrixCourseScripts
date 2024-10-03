@@ -259,7 +259,7 @@ function New-NitroApiObject {
   return $ApiHashElements
 }
 
-New-NitroJson {
+function New-NitroJson {
   param (
     [Parameter(Mandatory=$true)]
     $NitroFeatureName,
