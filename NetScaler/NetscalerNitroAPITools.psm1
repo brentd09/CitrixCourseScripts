@@ -168,24 +168,26 @@ function Set-NSConfiguration {
     So the APISyntax parameter just requires the last part of the URL: lbvserver or lbvserver_binding etc.
      
   .EXAMPLE
-    Set-NSConfiguration -WebSession $NSSession -APISyntax lbvserver -Changes 
-    This will produce an object that shows the exit code from the API call and a property "lbvserver" that
-    contains all of the Load Balancing Virtual Servers from the NetScaler
+    Set-NSConfiguration -WebSession $NSSession -NitroFeatureName lbvserver -NitroJsonBody $NitroBody 
+    This will create a load balancing virtual server based on the configuration that is in the 
+    $NitroBody JSON format. 
   #>
   [CmdletBinding()]
   Param (
     [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession,
-    [string]$APISyntax = 'lbvserver'
+    [string]$NitroFeatureName = 'lbvserver',
+    $NitroJsonBody
   )
   if (-not $WebSession) {$WebSession = Connect-NSAppliance}
-  $APISyntax = $APISyntax.TrimStart('/')
-  $URL = "http://$($WebSession.Headers.NSIPAddress)/nitro/v1/config/$APISyntax"
+  $NitroFeatureName = $NitroFeatureName.TrimStart('/')
+  $URL = "http://$($WebSession.Headers.NSIPAddress)/nitro/v1/config/$NitroFeatureName"
   $RestMethodSplat = @{
-    Method          = 'get'
+    Method          = 'post'
     Uri             = $URL
     ContentType     = 'application/json'
     WebSession      = $WebSession
     ErrorAction     = 'Stop'
+    Body            = $NitroJsonBody
   }
   try {$Result = Invoke-RestMethod @RestMethodSplat}
   catch {
@@ -193,4 +195,80 @@ function Set-NSConfiguration {
     break
   } 
   return $Result
+}
+
+function Get-HtmlContent {
+  [CmdletBinding()]
+  Param (
+    [string]$URL = 'https://developer-docs.netscaler.com/en-us/adc-nitro-api/current-release/configuration/lb/lbvserver#operations'
+  )
+  $WebResult = Invoke-WebRequest -Uri $URL
+  return $WebResult.Content
+}
+
+function Convert-HtmlTableToPSObject {
+  param (
+    [Parameter(Mandatory=$true)]
+    $WebContent
+  )
+  $SplitContent = $WebContent -split "`n"
+  $MinifiedContent = $SplitContent -join '' -replace '\s{2,}',''
+  $TableStartIndex = $MinifiedContent.IndexOf('<table')
+  $TableEndIndex   = $MinifiedContent.IndexOf('</table>') + 8
+  $EntireHtmlTable = $MinifiedContent.Substring($TableStartIndex,($TableEndIndex-$TableStartIndex))
+  $HtmlTableHeader = ($EntireHtmlTable -replace '.+(\<thead.+\<\/thead>).+','$1') -replace '\</?thead>',''
+  $HtmlTableBody   = ($EntireHtmlTable -replace '.+(\<tbody.+\<\/tbody>).+','$1') -replace '\</?tbody>',''
+  $CsvTableHeader = ($HtmlTableHeader -replace '<.+?><.+?>', ',' -replace '\s+','').trim(',') -split ',' 
+  $SplitTableBody = ($HtmlTableBody -replace '\<\/td\>\<\/tr\>',"`n") -replace '\<\/td\>\<td.*?\>','^' -split '^' -replace '\<tr\>\<td\>','' -replace '<(.+?)></\1>','$1' -replace '&(lt|gt);',''
+  $TableObject = $SplitTableBody | ConvertFrom-Csv -Delimiter '^' -Header $CsvTableHeader
+  return $TableObject
+}
+
+function Select_NitroApiElement {
+  param (
+    [Parameter(Mandatory=$true)]
+    $TableObject
+  )
+  $SelectedApiElements = $TableObject | Out-GridView -Title 'Select the elements you need for the API configuration' -OutputMode Multiple
+  return $SelectedApiElements 
+}
+
+function New-NitroApiObject {
+  param (
+    [Parameter(Mandatory=$true)]
+    $SelectedApiElements
+  )
+  $ApiHashElements = @{}
+  Write-Host -ForegroundColor Green "Enter values for each of the API elements"
+  foreach ($Element in $SelectedApiElements) {
+    Write-Host 
+    Write-Host -ForegroundColor Yellow $Element.Description
+    Write-Host -NoNewline -ForegroundColor DarkYellow "Type the value for the element - `"$($Element.Name)`": "
+    $Value = Read-Host
+    switch ($Element.DataType) {
+      string    {[string]$TypeCastValue = $Value}
+      string[]  {[string[]]$TypeCastValue = $Value}
+      integer   {[int]$TypeCastValue = $Value}
+      integer[] {[int]$TypeCastValue = $Value}
+      double    {[double]$TypeCastValue = $Value}
+      double[]  {[double[]]$TypeCastValue = $Value}
+      Default   {[string]$TypeCastValue = $Value}
+    }
+    $ApiHashElements.Add($Element.Name,$TypeCastValue)
+  }
+  return $ApiHashElements
+}
+
+New-NitroJson {
+  param (
+    [Parameter(Mandatory=$true)]
+    $NitroFeatureName,
+    [Parameter(Mandatory=$true)]
+    $ApiHashElements
+  )
+  $NitroApiObject = [PSCustomObject]@{
+    $NitroFeatureName = $ApiHashElements
+  }
+  $JsonObject = $NitroApiObject | ConvertTo-Json -Depth 8 
+  return $JsonObject
 }
