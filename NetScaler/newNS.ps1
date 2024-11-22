@@ -3,6 +3,7 @@ Class NSSession {
   [string]$NSMgmtIP
   [hashtable]$AuthInfo
   [string]$JsonAuthInfo
+  [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession
 
 
   NSSession ([PSCredential]$Credential = (Get-Credential), [string]$ManagementIP) {
@@ -18,7 +19,8 @@ Class NSSession {
     $this.JsonAuthInfo = $HashAuthInfo | ConvertTo-Json -Depth 8
   }
 
-  [hashtable]GetAuthObject () {
+  [void]GetAuthObject () {
+    $NSSession = [Microsoft.PowerShell.Commands.WebRequestSession]::new()
     $ReturnObject = @{
       Method          = 'post'
       Uri             = "http://" + $this.NSMgmtIP + "/nitro/v1/config/login"
@@ -28,7 +30,8 @@ Class NSSession {
       Headers         = @{NSIPAddress = $this.NSMgmtIP}
       ErrorAction     = 'Stop'
     }
-    return $ReturnObject
+    Invoke-RestMethod @ReturnObject
+    $this.WebSession = $NSSession
   }
 }
 
@@ -59,7 +62,7 @@ Class NitroDetails {
 
 class NSConfig {
   [string]$NSMgmtIP
-  [hashtable]$NSAuthentication
+  [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession
   [string]$NSConfigElement
   [string]$NSOperation
   [psobject]$NitroProperties
@@ -67,8 +70,8 @@ class NSConfig {
   [string]$OperationJson
   [string]$FeatureName
 
-  NSConfig ([string]$ManagementIP, [hashtable]$Authentication, [string]$ConfigElement, [string]$Operation, [psobject]$NitroProperties) {
-    $this.NSAuthentication = $Authentication
+  NSConfig ([string]$ManagementIP, [Microsoft.PowerShell.Commands.WebRequestSession]$WebSession, [string]$ConfigElement, [string]$Operation, [psobject]$NitroProperties) {
+    $this.Websession = $WebSession
     $this.NSMgmtIP = $ManagementIP
     $this.NSConfigElement = $ConfigElement
     $this.NitroProperties = $NitroProperties
@@ -113,7 +116,7 @@ class NSConfig {
       Method          = 'post'
       Uri             = $URL
       ContentType     = 'application/json'
-      WebSession      = $this.NSAuthentication
+      WebSession      = $this.WebSession
       ErrorAction     = 'Stop'
       Body            = $this.OperationJson
     }
