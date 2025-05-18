@@ -132,7 +132,6 @@ function Get-NSConfiguration {
   } 
   return $Result
 }
-
 function Set-NSConfiguration {
   <#
   .SYNOPSIS
@@ -202,7 +201,6 @@ function Set-NSConfiguration {
   } 
   return $Result
 }
-
 function Convert-NitroWebContentToPSObject {
   [CmdletBinding()]
   param (
@@ -224,7 +222,6 @@ function Convert-NitroWebContentToPSObject {
   $TableObject     = $SplitTableBody | ConvertFrom-Csv -Delimiter '^' -Header $CsvTableHeader
   return $TableObject
 }
-
 function Select-NitroElementToJson {
   [CmdletBinding()]
   param (
@@ -258,4 +255,3 @@ function Select-NitroElementToJson {
   $JsonObject = $NitroApiObject | ConvertTo-Json -Depth 8 
   return $JsonObject
 }
-
